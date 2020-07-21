@@ -259,6 +259,10 @@ didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSe
   if (userInfo[@"aps"]) {
     [_channel invokeMethod:@"onResume" arguments:userInfo];
     completionHandler();
+  } else {
+    NSDictionary *args =  [NSDictionary dictionaryWithObject:response.notification.request.identifier forKey:@"identifier"];
+    [_channel invokeMethod:@"onResume" arguments:args];
+    completionHandler();
   }
 }
 
