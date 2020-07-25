@@ -89,6 +89,14 @@
     }
 }
 
+- (void)didReceiveLocalNotificationOnMessage:(NSDictionary *)dic {
+    [_channel invokeMethod:@"onMessage" arguments:dic];
+}
+
+- (void)didReceiveLocalNotificationOnResume:(NSDictionary *)dic {
+    [_channel invokeMethod:@"onResume" arguments:dic];
+}
+
 - (NSString *)stringWithDeviceToken:(NSData *)deviceToken {
     const char *data = [deviceToken bytes];
     NSMutableString *token = [NSMutableString string];
@@ -105,7 +113,12 @@
 - (BOOL)application:(UIApplication *)application
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     if (launchOptions != nil) {
+        // リモート通知
         _launchNotification = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+        if (_launchNotification == nil) {
+            // ローカル通知
+            _launchNotification = launchOptions[UIApplicationLaunchOptionsLocalNotificationKey];
+        }
     }
     return YES;
 }
@@ -139,6 +152,23 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandl
     [self didReceiveRemoteNotification:userInfo];
     completionHandler(UIBackgroundFetchResultNoData);
     return YES;
+}
+
+- (void)application:(UIApplication *)application
+didReceiveLocalNotification:(UILocalNotification *)notification {
+    NSDictionary *dic = [NSDictionary dictionaryWithObjectsAndKeys:
+      notification.category, @"identifier",
+      notification.alertTitle, @"title",
+      notification.alertBody, @"message", nil];
+
+    if (application.applicationState == UIApplicationStateActive) {
+        [self didReceiveLocalNotificationOnMessage:dic];
+        return;
+    }
+    if (application.applicationState == UIApplicationStateInactive) {
+        [self didReceiveLocalNotificationOnResume:dic];
+        return;
+    }
 }
 
 - (void)application:(UIApplication *)application
