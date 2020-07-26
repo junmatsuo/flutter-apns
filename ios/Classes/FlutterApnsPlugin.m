@@ -4,6 +4,7 @@
 @implementation FlutterApnsPlugin {
     FlutterMethodChannel *_channel;
     NSDictionary *_launchNotification;
+    NSDictionary *_launchLocalNotification;
     BOOL _resumingFromBackground;
 }
 
@@ -75,6 +76,11 @@
         if (_launchNotification != nil) {
             [_channel invokeMethod:@"onLaunch" arguments:_launchNotification];
         }
+        if (_launchLocalNotification != nil) {
+            NSDictionary *dic = [NSDictionary dictionaryWithObjectsAndKeys:
+              @"", @"identifier", nil];
+            [_channel invokeMethod:@"onLaunch" arguments:dic];
+        }
         result(nil);
     } else {
         result(FlutterMethodNotImplemented);
@@ -117,7 +123,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
         _launchNotification = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
         if (_launchNotification == nil) {
             // ローカル通知
-            _launchNotification = launchOptions[UIApplicationLaunchOptionsLocalNotificationKey];
+            _launchLocalNotification = launchOptions[UIApplicationLaunchOptionsLocalNotificationKey];
         }
     }
     return YES;
